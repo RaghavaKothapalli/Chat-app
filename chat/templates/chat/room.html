@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+</head>
+<body>
+    <h2>Welcome, {{ username }} 👋</h2>
+    <div id="chat-box" style="border:1px solid #ccc; padding:10px; width:300px; height:200px; overflow-y:scroll;">
+        <p><i>This will be the chat area.</i></p>
+    </div>
+    <form method="POST" id="chat-form">
+        {% csrf_token %}
+        <input type="text" id="message" placeholder="Type message..." />
+        <button type="submit">Send</button>
+    </form>
+    <br>
+    <a href="/logout/">Logout</a>
+</body>
+</html>
