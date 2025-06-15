@@ -4,8 +4,10 @@ from .models import Message
 
 @login_required
 def chat_room(request):
-    messages = Message.objects.select_related('user').order_by('timestamp')
+    room_name = request.GET.get('room', 'general')  # default: general
+    messages = Message.objects.filter(room=room_name).order_by('timestamp')
     return render(request, 'chat/room.html', {
         'username': request.user.username,
-        'messages': messages
+        'messages': messages,
+        'room_name': room_name,
     })
