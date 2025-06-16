@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatApp Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        a.button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a.button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to ChatApp 💬</h1>
+        <p>A real-time chat app built with Django and WebSockets.</p>
+        {% if user.is_authenticated %}
+            <a class="button" href="/chat/?room=general">Enter Chat</a>
+        {% else %}
+            <a class="button" href="/login/">Login</a>
+            <a class="button" href="/register/">Register</a>
+        {% endif %}
+    </div>
+</body>
+</html>
