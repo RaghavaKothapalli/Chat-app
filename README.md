@@ -2,8 +2,9 @@
 $env:DJANGO_SETTINGS_MODULE="core.settings"; daphne -b 127.0.0.1 -p 8000 core.asgi:application
 
 
-<h2>stuff gor next update <h2>
-<p>1. ✅ Message timestamps
+<h2>stuff for next update <h2>
+<p>
+1. ✅ Message timestamps
 🕒 Show when each message was sent
 📌 Why: Adds realism & DB timestamp integration
 📂 How: {{ msg.timestamp|date:'H:i' }} or add timestamp to JSON in consumer
