@@ -4,57 +4,162 @@
     <meta charset="UTF-8">
     <title>Chat Room</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+        :root {
+            --bg-color: white;
+            --text-color: black;
+            --header-bg: #007BFF;
+            --footer-bg: #f1f1f1;
+            --sidebar-border: #ccc;
         }
-        #chat-box {
-            width: 100%;
-            max-width: 500px;
-            height: 300px;
-            border: 1px solid #ccc;
+
+        .dark-theme {
+            --bg-color: #1a1a1a;
+            --text-color: #f1f1f1;
+            --header-bg: #222;
+            --footer-bg: #111;
+            --sidebar-border: #444;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: white;
+        }
+
+        footer {
+            background-color: var(--footer-bg);
             padding: 10px;
+            text-align: center;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 30%;
+            padding: 10px;
+            border-right: 1px solid var(--sidebar-border);
             overflow-y: auto;
+        }
+
+        .chat-panel {
+            width: 70%;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
             margin-bottom: 10px;
         }
-        #chat-box p { margin: 5px 0; }
+
         .chat-input {
             display: flex;
             gap: 10px;
         }
+
         .chat-input input {
             flex: 1;
             padding: 8px;
         }
+
         .chat-input button {
             padding: 8px 16px;
         }
-        .me { color: green; }
-        .other { color: black; }
+
+        .me-msg {
+            text-align: right;
+            color: green;
+        }
+
+        .other-msg {
+            text-align: left;
+            color: black;
+        }
+
+        .dark-theme .me-msg { color: lightgreen; }
+        .dark-theme .other-msg { color: #eee; }
+
+        a.room-link {
+            display: block;
+            margin: 5px 0;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a.room-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-<h2>Welcome, {{ username }}</h2>
-<div>
-    <strong>Rooms:</strong>
-    <a href="/chat/?room=general">General</a> |
-    <a href="/chat/?room=gaming">Gaming</a> |
-    <a href="/chat/?room=python">Python</a>
+<header>
+    Welcome, {{ username }} | Room: {{ room_name }}
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+</header>
+
+<div class="main">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h4>Rooms</h4>
+        <a href="/chat/?room=general" class="room-link">General</a>
+        <a href="/chat/?room=gaming" class="room-link">Gaming</a>
+        <a href="/chat/?room=python" class="room-link">Python</a>
+
+        <hr>
+        <h4>Online Users (<span id="user-count">0</span>):</h4>
+        <ul id="online-users"></ul>
+    </div>
+
+    <!-- Right Chat Panel -->
+    <div class="chat-panel">
+        <div id="chat-box">
+            {% for msg in messages %}
+                <p class="{% if msg.user.username == username %}me-msg{% else %}other-msg{% endif %}"><strong>{{ msg.user.username }}:</strong> {{ msg.content }}</p>
+            {% endfor %}
+        </div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
 </div>
-<br>
-<h4>Online Users (<span id="user-count">0</span>):</h4>
-<ul id="online-users"></ul>
-<div id="chat-box">
-    {% for msg in messages %}
-        <p><strong class="{% if msg.user.username == username %}me{% else %}other{% endif %}">{{ msg.user.username }}:</strong> {{ msg.content }}</p>
-    {% endfor %}
-</div>
-<div class="chat-input">
-    <input type="text" id="message-input" placeholder="Type a message...">
-    <button onclick="sendMessage()">Send</button>
-</div>
-<br>
-<a href="/logout/">Logout</a>
+
+<footer>
+    <a href="/logout/">Logout</a>
+</footer>
+
 <script>
     const username = "{{ username }}";
     const roomName = "{{ room_name }}";
@@ -65,7 +170,7 @@
 
     const socket = new WebSocket("ws://" + window.location.host + "/ws/chat/" + roomName + "/");
 
-    socket.onopen = () => console.log("Connected to " + roomName);
+    socket.onopen = () => console.log("Connected to room: " + roomName);
 
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
@@ -82,7 +187,8 @@
         }
 
         const p = document.createElement("p");
-        p.innerHTML = `<strong class="${data.username === username ? 'me' : 'other'}">${data.username}:</strong> ${data.message}`;
+        p.className = data.username === username ? 'me-msg' : 'other-msg';
+        p.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
         chatBox.appendChild(p);
         chatBox.scrollTop = chatBox.scrollHeight;
     };
@@ -98,6 +204,24 @@
     messageInput.addEventListener("keypress", e => {
         if (e.key === "Enter") sendMessage();
     });
+
+    function toggleTheme() {
+        const body = document.body;
+        const toggle = document.getElementById("themeToggle");
+        body.classList.toggle("dark-theme");
+        const isDark = body.classList.contains("dark-theme");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        toggle.textContent = isDark ? "☀️" : "🌙";
+    }
+
+    // Load saved theme
+    (function applySavedTheme() {
+        const saved = localStorage.getItem("theme");
+        if (saved === "dark") {
+            document.body.classList.add("dark-theme");
+            document.getElementById("themeToggle").textContent = "☀️";
+        }
+    })();
 </script>
 </body>
 </html>
